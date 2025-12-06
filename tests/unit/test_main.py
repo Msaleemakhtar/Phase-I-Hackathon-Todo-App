@@ -1,6 +1,6 @@
 """Unit tests for main application menu."""
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from src.main import handle_add_task, main
 
@@ -31,96 +31,139 @@ class TestMainMenu:
     """Tests for main menu loop."""
 
     @patch("builtins.input")
-    @patch("builtins.print")
+    @patch("src.main.Console")
     @patch("src.main.handle_add_task")
-    def test_main_menu_option_1_add_task(self, mock_handle, mock_print, mock_input):
+    def test_main_menu_option_1_add_task(self, mock_handle, mock_console, mock_input):
         """Test selecting option 1 calls handle_add_task."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.side_effect = ["1", "7"]  # Select Add Task, then Exit
 
         main()
 
         mock_handle.assert_called_once()
-        assert any("Goodbye!" in str(call) for call in mock_print.call_args_list)
+        # Check if "Goodbye!" was printed using console
+        goodbye_calls = [call for call in console_instance.print.call_args_list
+                        if "Goodbye!" in str(call)]
+        assert len(goodbye_calls) > 0
 
     @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_option_7_exit(self, mock_print, mock_input):
+    @patch("src.main.Console")
+    def test_main_menu_option_7_exit(self, mock_console, mock_input):
         """Test selecting option 7 exits with goodbye message."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.return_value = "7"
 
         main()
 
-        assert any("Goodbye!" in str(call) for call in mock_print.call_args_list)
+        # Check if "Goodbye!" was printed using console
+        goodbye_calls = [call for call in console_instance.print.call_args_list
+                        if "Goodbye!" in str(call)]
+        assert len(goodbye_calls) > 0
 
     @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_invalid_option(self, mock_print, mock_input):
+    @patch("src.main.Console")
+    def test_main_menu_invalid_option(self, mock_console, mock_input):
         """Test invalid option shows error message."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.side_effect = ["99", "7"]  # Invalid option, then Exit
 
         main()
 
-        print_calls = [str(call) for call in mock_print.call_args_list]
+        print_calls = [str(call) for call in console_instance.print.call_args_list]
         assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_displays_all_options(self, mock_print, mock_input):
+    @patch("src.main.Console")
+    def test_main_menu_displays_all_options(self, mock_console, mock_input):
         """Test main menu displays all 7 options."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.return_value = "7"
 
         main()
 
-        print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("=== Todo App ===" in call for call in print_calls)
-        assert any("1. Add Task" in call for call in print_calls)
-        assert any("2. View Tasks" in call for call in print_calls)
-        assert any("3. View Task Details" in call for call in print_calls)
-        assert any("4. Update Task" in call for call in print_calls)
-        assert any("5. Delete Task" in call for call in print_calls)
-        assert any("6. Mark Complete" in call for call in print_calls)
-        assert any("7. Exit" in call for call in print_calls)
+        # Check that console.print was called (includes Panel for "Todo App" and menu options)
+        assert console_instance.print.call_count >= 8  # Panel + 7 options + goodbye
+        print_calls = [str(call) for call in console_instance.print.call_args_list]
+        # The menu options should be printed with console.print
+        assert any("ADD TASK" in call for call in print_calls)
+        assert any("VIEW TASKS" in call for call in print_calls)
+        assert any("VIEW TASK DETAILS" in call for call in print_calls)
+        assert any("UPDATE TASK" in call for call in print_calls)
+        assert any("DELETE TASK" in call for call in print_calls)
+        assert any("MARK COMPLETE" in call for call in print_calls)
+        assert any("EXIT" in call for call in print_calls)
 
     @patch("builtins.input")
-    @patch("builtins.print")
+    @patch("src.main.Console")
     @patch("src.main.handle_add_task")
-    def test_main_menu_multiple_operations(self, mock_handle, mock_print, mock_input):
+    def test_main_menu_multiple_operations(self, mock_handle, mock_console, mock_input):
         """Test multiple operations in sequence."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         # Add task twice, try invalid option, then exit
         mock_input.side_effect = ["1", "1", "invalid", "7"]
 
         main()
 
         assert mock_handle.call_count == 2
-        assert any("Goodbye!" in str(call) for call in mock_print.call_args_list)
+        # Check if "Goodbye!" was printed using console
+        goodbye_calls = [call for call in console_instance.print.call_args_list
+                        if "Goodbye!" in str(call)]
+        assert len(goodbye_calls) > 0
 
     @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_empty_input(self, mock_print, mock_input):
+    @patch("src.main.Console")
+    def test_main_menu_empty_input(self, mock_console, mock_input):
         """Test empty input treated as invalid option."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.side_effect = ["", "7"]
 
         main()
 
-        print_calls = [str(call) for call in mock_print.call_args_list]
+        print_calls = [str(call) for call in console_instance.print.call_args_list]
         assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_whitespace_input(self, mock_print, mock_input):
+    @patch("src.main.Console")
+    def test_main_menu_whitespace_input(self, mock_console, mock_input):
         """Test whitespace input treated as invalid option."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         mock_input.side_effect = ["   ", "7"]
 
         main()
 
-        print_calls = [str(call) for call in mock_print.call_args_list]
+        print_calls = [str(call) for call in console_instance.print.call_args_list]
         assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
-    @patch("builtins.print")
+    @patch("src.main.Console")
     @patch("src.main.update_task_prompt")
-    def test_main_menu_loop_continues_after_operation(self, mock_update, mock_print, mock_input):
+    def test_main_menu_loop_continues_after_operation(self, mock_update, mock_console, mock_input):
         """Test menu loop continues after each operation."""
+        # Mock the console instance and its print method
+        console_instance = mock_console.return_value
+        console_instance.print = MagicMock()
+
         # Option 2: View Tasks, Option 4: Update Task, Exit
         mock_input.side_effect = ["2", "4", "7"]
 
@@ -128,6 +171,9 @@ class TestMainMenu:
 
         # Update task should be called once
         mock_update.assert_called_once()
-        # Should see menu displayed 3 times (once for each iteration)
-        menu_count = sum(1 for call in mock_print.call_args_list if "=== Todo App ===" in str(call))
-        assert menu_count == 3
+        # Check that menu was displayed 3 times by counting Panel objects (one per menu display)
+        # Each menu iteration prints a Panel, so we count Panel objects in the calls
+        from rich.panel import Panel
+        panel_count = sum(1 for call in console_instance.print.call_args_list
+                         if call[0] and isinstance(call[0][0], Panel))
+        assert panel_count == 3

@@ -22,9 +22,9 @@ def test_main_module_entry_point():
 
     # Verify the module executed successfully
     assert result.returncode == 0
-    assert "=== Todo App ===" in result.stdout
-    assert "1. Add Task" in result.stdout
-    assert "7. Exit" in result.stdout
+    assert "TODO APP" in result.stdout
+    assert "ADD TASK" in result.stdout
+    assert "EXIT" in result.stdout
     assert "Goodbye!" in result.stdout
 
 

@@ -32,7 +32,6 @@ PROMPT_DESCRIPTION = "Enter Optional Task Description (press Enter to skip): "
 
 # Prompts - View Task feature
 PROMPT_TASK_ID = "Enter Task ID: "
-PROMPT_PAGINATION = "Press Enter to continue..."
 MSG_NO_TASKS = "No tasks found."
 
 # Prompts - Update Task feature

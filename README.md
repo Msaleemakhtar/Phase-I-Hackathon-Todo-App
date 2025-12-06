@@ -1,11 +1,17 @@
-# Todo App - Phase I: Add Task Feature
+# Todo App
 
-A command-line todo application built with Python 3.13 following Test-Driven Development principles.
+A feature-rich command-line todo application built with Python 3.13 following Test-Driven Development principles and Spec-Driven Development methodology.
 
 ## Features
 
 - ✅ **Add Task**: Create tasks with title (1-200 chars) and optional description (0-1000 chars)
-- ✅ **Input Validation**: Comprehensive validation with clear error messages (ERROR 001-003)
+- ✅ **View Tasks**: Display all tasks in a formatted list with completion indicators
+- ✅ **View Task Details**: View complete details of a specific task including description and timestamps
+- ✅ **Update Task**: Modify existing task title and description
+- ✅ **Delete Task**: Remove tasks from storage with confirmation
+- ✅ **Mark Complete**: Toggle task completion status with dynamic confirmation prompts
+- ✅ **Rich UI Integration**: Enhanced console interface with formatted tables and visual feedback (in development)
+- ✅ **Input Validation**: Comprehensive validation with clear error messages
 - ✅ **Sequential IDs**: Auto-generated sequential task IDs starting from 1
 - ✅ **UTC Timestamps**: ISO 8601 format timestamps for created_at and updated_at
 - ✅ **In-Memory Storage**: Ephemeral task storage (cleared on app exit)
@@ -65,31 +71,64 @@ uv run ruff format .
 When you run the application, you'll see a main menu:
 
 ```
-=== Todo App ===
-1. Add Task
-2. View Tasks (Future feature)
-3. Update Task (Future feature)
-4. Delete Task (Future feature)
-5. Mark Complete (Future feature)
-6. Exit
+✨ WELCOME TO TODO APP ✨
+┌─────────────────────────────────────┐
+│          TODO APP                   │
+│     (ASCII art banner)              │
+└─────────────────────────────────────┘
+Manage your tasks efficiently
+
+  1.  ADD TASK
+  2.  VIEW TASKS
+  3.  VIEW TASK DETAILS
+  4.  UPDATE TASK
+  5.  DELETE TASK
+  6.  MARK COMPLETE
+  7.  EXIT
 
 Select option:
 ```
 
-### Adding a Task
+### Available Operations
 
-1. Select option `1` from the main menu
-2. Enter a task title (1-200 characters required)
-3. Enter an optional description (0-1000 characters, or press Enter to skip)
-4. Task is created and success message displayed
+#### 1. Add Task
+Create a new task with title and optional description.
+- Enter a task title (1-200 characters required)
+- Enter an optional description (0-1000 characters, or press Enter to skip)
+- Task is created with auto-generated ID and timestamps
 
-**Example:**
-```
-Select option: 1
-Enter Task Title: Buy groceries
-Enter Optional Task Description (press Enter to skip): Milk, eggs, bread
-Task added successfully.
-```
+#### 2. View Tasks
+Display all tasks in a formatted list showing ID, title, and completion status.
+- Shows completion indicators: `[ ]` for incomplete, `[X]` for complete
+- Displays task count summary
+- Shows "No tasks found" if task list is empty
+
+#### 3. View Task Details
+View complete details of a specific task.
+- Prompts for task ID
+- Displays all fields: ID, title, description, completion status, timestamps
+- Shows error message for invalid or non-existent task IDs
+
+#### 4. Update Task
+Modify an existing task's title and/or description.
+- Prompts for task ID
+- Shows current values
+- Enter new values or press Enter to keep current values
+- Updates the `updated_at` timestamp
+
+#### 5. Delete Task
+Remove a task from storage.
+- Prompts for task ID
+- Shows task details and asks for confirmation
+- Permanently deletes task on confirmation
+- IDs are not reused after deletion
+
+#### 6. Mark Complete
+Toggle a task's completion status.
+- Prompts for task ID
+- Shows dynamic confirmation message (mark complete/incomplete)
+- Toggles completion status on confirmation
+- Updates the `updated_at` timestamp
 
 ## Validation Rules
 
@@ -140,12 +179,17 @@ todo-app/
 
 ## Test Coverage
 
-- **48 tests** across unit and integration test suites
+- **Comprehensive test suite** across unit and integration tests
 - **100% coverage** on all core business logic:
   - `src/constants.py`: 100%
   - `src/models/task.py`: 100%
   - `src/services/task_service.py`: 100%
   - `src/ui/prompts.py`: 100%
+  - `src/main.py`: High coverage on all menu handlers
+- **Test Types**:
+  - Unit tests for models, services, and validation logic
+  - Integration tests for complete user workflows
+  - Edge case and error handling tests
 
 ## Development
 
@@ -155,6 +199,7 @@ todo-app/
 - **Package Manager**: UV
 - **Testing**: pytest, pytest-cov
 - **Linting/Formatting**: ruff
+- **UI Enhancement**: rich (formatted tables, panels, styling), pyfiglet (ASCII art)
 - **Type Hints**: Full type annotation coverage
 
 ### Design Principles
@@ -178,24 +223,23 @@ Each task has the following fields:
 | `created_at` | `str` | UTC timestamp when task was created (ISO 8601) |
 | `updated_at` | `str` | UTC timestamp of last modification (ISO 8601) |
 
-## Success Criteria (Phase I)
+## Success Criteria
 
-All success criteria verified:
+All core success criteria verified across implemented features:
 
-- ✅ **SC-001**: Task creation completes in < 30 seconds
-- ✅ **SC-002**: 100% of valid inputs create tasks successfully
-- ✅ **SC-003**: 100% of invalid inputs display correct error and allow retry
-- ✅ **SC-004**: Sequential IDs starting from 1, no gaps or duplicates
-- ✅ **SC-005**: ISO 8601 UTC timestamps for created_at and updated_at
-- ✅ **SC-006**: Empty descriptions work 100% of the time
-- ✅ **SC-007**: Returns to main menu 100% of the time with confirmation
+- ✅ **Performance**: All operations complete in < 30 seconds
+- ✅ **Reliability**: 100% of valid inputs succeed, 100% of invalid inputs show clear errors
+- ✅ **Data Integrity**: Sequential IDs with no gaps or duplicates, proper timestamp handling
+- ✅ **User Experience**: Clear confirmation messages, graceful error handling, intuitive navigation
+- ✅ **Test Coverage**: 100% coverage on core business logic with comprehensive test suites
+- ✅ **Code Quality**: PEP 8 compliance, full type annotations, Google-style docstrings
 
 ## Constitutional Compliance
 
 This project adheres to strict development principles:
 
 - ✅ **Python 3.13+** exclusively
-- ✅ **Standard library only** (except pytest for testing)
+- ✅ **Minimal dependencies** (pytest for testing, rich/pyfiglet for UI enhancement)
 - ✅ **In-memory storage** (Python list of dataclass instances)
 - ✅ **No file I/O, database, or external persistence**
 - ✅ **UV for dependency management**
@@ -203,15 +247,18 @@ This project adheres to strict development principles:
 - ✅ **Type hints** on all function signatures
 - ✅ **Google-style docstrings**
 - ✅ **Ruff for linting and formatting**
+- ✅ **Spec-Driven Development** methodology with documented features
 
-## Future Features
+## Implementation History
 
-Phase I implements the Add Task feature. Future phases will add:
+All features developed following TDD and Spec-Driven Development:
 
-- **View Tasks**: List all tasks with filtering
-- **Update Task**: Modify task title and description
-- **Delete Task**: Remove tasks from storage
-- **Mark Complete**: Toggle task completion status
+- ✅ **001-add-task**: Create tasks with validation ([spec](specs/001-add-task/spec.md))
+- ✅ **002-view-task**: List and view task details ([spec](specs/002-view-task/spec.md))
+- ✅ **003-update-task**: Modify existing tasks ([spec](specs/003-update-task/spec.md))
+- ✅ **004-delete-task**: Remove tasks with confirmation ([spec](specs/004-delete-task/spec.md))
+- ✅ **005-mark-complete**: Toggle completion status ([spec](specs/005-mark-complete/spec.md))
+- 🚧 **006-rich-ui**: Enhanced console interface ([spec](specs/006-rich-ui/spec.md)) - In Development
 
 ## Contributing
 
@@ -225,12 +272,22 @@ This project is part of a structured development learning exercise.
 
 For issues or questions, refer to:
 
-- **Feature Specification**: `specs/001-add-task/spec.md`
-- **Implementation Plan**: `specs/001-add-task/plan.md`
-- **Data Model**: `specs/001-add-task/data-model.md`
-- **Constitution**: `.specify/memory/constitution.md`
+- **Feature Specifications**: See `specs/` directory for all feature documentation
+- **Constitution & Principles**: `.specify/memory/constitution.md`
+- **Prompt History**: `history/prompts/` for development decision records
+- **Architecture Decisions**: `history/adr/` for significant technical choices
 - **GitHub Issues**: [Report a bug](https://github.com/Msaleemakhtar/Phase-I-Hackathon-Todo-App/issues)
+
+## Development Workflow
+
+This project follows Spec-Driven Development (SDD):
+
+1. **Specification**: Each feature starts with a detailed spec in `specs/<feature-name>/spec.md`
+2. **Planning**: Architecture and implementation plan documented in `specs/<feature-name>/plan.md`
+3. **Tasks**: Breakdown into testable tasks in `specs/<feature-name>/tasks.md`
+4. **Implementation**: TDD approach with tests written before code
+5. **Documentation**: Prompt History Records (PHRs) and ADRs capture decisions
 
 ---
 
-**Built with Python 3.13 | Powered by UV | 100% Test Coverage**
+**Built with Python 3.13 | Powered by UV | Enhanced with Rich UI | 100% Test Coverage**
