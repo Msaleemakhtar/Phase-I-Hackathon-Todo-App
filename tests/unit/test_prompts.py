@@ -773,3 +773,72 @@ class TestUpdateTaskPrompt:
 
         task = task_service.get_task_by_id(1)
         assert task.description == "Original Description"
+
+
+class TestPromptForDeleteConfirmation:
+    """Tests for prompt_for_delete_confirmation() function."""
+
+    def test_confirm_with_uppercase_y(self, monkeypatch):
+        """Input 'Y' returns True."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        monkeypatch.setattr("builtins.input", lambda _: "Y")
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is True
+
+    def test_confirm_with_lowercase_y(self, monkeypatch):
+        """Input 'y' returns True."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        monkeypatch.setattr("builtins.input", lambda _: "y")
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is True
+
+    def test_cancel_with_uppercase_n(self, monkeypatch):
+        """Input 'N' returns False."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        monkeypatch.setattr("builtins.input", lambda _: "N")
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is False
+
+    def test_cancel_with_lowercase_n(self, monkeypatch):
+        """Input 'n' returns False."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        monkeypatch.setattr("builtins.input", lambda _: "n")
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is False
+
+    def test_strips_whitespace(self, monkeypatch):
+        """Input ' Y ' (with spaces) returns True."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        monkeypatch.setattr("builtins.input", lambda _: " Y ")
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is True
+
+    def test_invalid_then_valid_response(self, monkeypatch, capsys):
+        """Invalid input shows ERROR 105, then re-prompts."""
+        from src.ui.prompts import prompt_for_delete_confirmation
+
+        inputs = iter(["maybe", "Y"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        result = prompt_for_delete_confirmation("Test Task")
+
+        assert result is True
+
+        # Verify ERROR 105 was printed
+        captured = capsys.readouterr()
+        assert "ERROR 105" in captured.out

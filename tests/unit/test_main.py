@@ -67,17 +67,17 @@ class TestMainMenu:
     @patch("builtins.print")
     def test_main_menu_future_features(self, mock_print, mock_input):
         """Test future feature options show not implemented message."""
-        # Test options 5, 6 (Delete Task and Mark Complete - future features)
-        mock_input.side_effect = ["5", "6", "7"]
+        # Test option 6 (Mark Complete - future feature)
+        mock_input.side_effect = ["6", "7"]
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        # Should see "not implemented" message 2 times (for options 5, 6)
+        # Should see "not implemented" message 1 time (for option 6)
         not_implemented_count = sum(
             1 for call in print_calls if "Feature not yet implemented" in call
         )
-        assert not_implemented_count == 2
+        assert not_implemented_count == 1
 
     @patch("builtins.input")
     @patch("builtins.print")

@@ -107,3 +107,26 @@ def update_task(
     task.updated_at = Task.generate_timestamp()
 
     return task
+
+
+def delete_task(task_id: int) -> Task:
+    """Delete a task from storage by its unique ID.
+
+    Args:
+        task_id: The unique identifier of the task to delete
+
+    Returns:
+        The deleted Task object (for use in confirmation message)
+
+    Raises:
+        ValueError: If task_id <= 0 (ERROR 103)
+        ValueError: If no task with task_id exists (ERROR 101)
+    """
+    # Reuse get_task_by_id() for validation and retrieval
+    task = get_task_by_id(task_id)
+
+    # Remove task from storage (no renumbering)
+    _task_storage.remove(task)
+
+    # Return deleted task for UI confirmation message
+    return task

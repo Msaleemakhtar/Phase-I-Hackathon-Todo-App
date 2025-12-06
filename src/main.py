@@ -3,6 +3,7 @@
 from src.constants import MSG_TASK_ADDED
 from src.services.task_service import create_task, get_all_tasks, get_task_by_id
 from src.ui.prompts import (
+    delete_task_prompt,
     display_task_details,
     display_task_list,
     get_task_description,
@@ -56,7 +57,7 @@ def main() -> None:
         print("2. View Tasks")
         print("3. View Task Details")
         print("4. Update Task")
-        print("5. Delete Task")  # Future feature
+        print("5. Delete Task")
         print("6. Mark Complete")  # Future feature
         print("7. Exit")
 
@@ -70,6 +71,8 @@ def main() -> None:
             handle_view_task_details()
         elif choice == "4":
             update_task_prompt()
+        elif choice == "5":
+            delete_task_prompt()
         elif choice == "7":
             print("Goodbye!")
             break

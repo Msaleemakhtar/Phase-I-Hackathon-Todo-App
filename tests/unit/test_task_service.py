@@ -324,3 +324,95 @@ class TestUpdateTask:
         assert updated.description == original_description
         # But timestamp should update
         assert updated.updated_at != original_updated_at
+
+
+class TestDeleteTask:
+    """Tests for delete_task() function."""
+
+    def test_delete_existing_task(self):
+        """Delete existing task removes it from storage and returns task."""
+        # Setup: Create 3 tasks
+        task1 = task_service.create_task("Task 1", "Description 1")
+        task2 = task_service.create_task("Task 2", "Description 2")
+        task3 = task_service.create_task("Task 3", "Description 3")
+
+        # Action: delete task 2
+        deleted = task_service.delete_task(task_id=2)
+
+        # Assert: Task 2 removed, tasks 1 and 3 unchanged, returns deleted task
+        assert deleted == task2
+        assert deleted.id == 2
+        assert deleted.title == "Task 2"
+        assert len(task_service._task_storage) == 2
+        assert task1 in task_service._task_storage
+        assert task2 not in task_service._task_storage
+        assert task3 in task_service._task_storage
+
+    def test_delete_non_existent_task(self):
+        """Delete non-existent task raises ValueError with ERROR 101."""
+        # Setup: Create tasks with IDs [1, 2]
+        task_service.create_task("Task 1", "")
+        task_service.create_task("Task 2", "")
+
+        # Action: delete task 99
+        with pytest.raises(ValueError, match="ERROR 101"):
+            task_service.delete_task(task_id=99)
+
+        # Assert: Storage unchanged
+        assert len(task_service._task_storage) == 2
+
+    def test_delete_with_invalid_id_zero(self):
+        """Delete with ID 0 raises ValueError with ERROR 103."""
+        # Action: delete task 0
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.delete_task(task_id=0)
+
+    def test_delete_with_negative_id(self):
+        """Delete with negative ID raises ValueError with ERROR 103."""
+        # Action: delete task -5
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.delete_task(task_id=-5)
+
+    def test_delete_last_remaining_task(self):
+        """Delete only task in list results in empty storage."""
+        # Setup: Create 1 task with ID 5 (non-sequential for thoroughness)
+        task_service.create_task("Task 1", "")
+        task_service.create_task("Task 2", "")
+        task_service.create_task("Task 3", "")
+        task_service.create_task("Task 4", "")
+        task = task_service.create_task("Last Task", "")
+
+        # Delete all but the last one
+        task_service.delete_task(1)
+        task_service.delete_task(2)
+        task_service.delete_task(3)
+        task_service.delete_task(4)
+
+        # Action: delete last task
+        deleted = task_service.delete_task(task_id=5)
+
+        # Assert: Returns deleted task, _task_storage is empty list
+        assert deleted == task
+        assert deleted.id == 5
+        assert len(task_service._task_storage) == 0
+        assert task_service._task_storage == []
+
+    def test_delete_does_not_renumber_ids(self):
+        """Deleting middle task preserves IDs of remaining tasks."""
+        # Setup: Create tasks with IDs [1, 2, 3, 4, 5]
+        task1 = task_service.create_task("Task 1", "")
+        task2 = task_service.create_task("Task 2", "")
+        task_service.create_task("Task 3", "")  # Will be deleted
+        task4 = task_service.create_task("Task 4", "")
+        task5 = task_service.create_task("Task 5", "")
+
+        # Action: delete task 3
+        task_service.delete_task(task_id=3)
+
+        # Assert: Remaining IDs are [1, 2, 4, 5] (not [1, 2, 3, 4])
+        remaining_ids = [task.id for task in task_service._task_storage]
+        assert remaining_ids == [1, 2, 4, 5]
+        assert task1.id == 1
+        assert task2.id == 2
+        assert task4.id == 4
+        assert task5.id == 5
