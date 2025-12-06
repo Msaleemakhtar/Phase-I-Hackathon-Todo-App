@@ -6,13 +6,17 @@ from src.constants import (
     ERROR_INVALID_INPUT,
     ERROR_INVALID_OPTION,
     ERROR_INVALID_TASK_ID,
+    ERROR_MARK_COMPLETE_CONFIRMATION,
     ERROR_TITLE_REQUIRED,
     ERROR_TITLE_TOO_LONG,
     MAX_DESCRIPTION_LENGTH,
     MAX_TITLE_LENGTH,
     MSG_DELETION_CANCELED,
+    MSG_MARK_COMPLETE_CANCELED,
     MSG_NO_TASKS,
     MSG_TASK_DELETED,
+    MSG_TASK_MARKED_COMPLETE,
+    MSG_TASK_MARKED_INCOMPLETE,
     MSG_TASK_UPDATED,
     PROMPT_DESCRIPTION,
     PROMPT_FIELD_SELECTION,
@@ -23,7 +27,12 @@ from src.constants import (
     PROMPT_TITLE,
 )
 from src.models.task import Task
-from src.services.task_service import delete_task, get_task_by_id, update_task
+from src.services.task_service import (
+    delete_task,
+    get_task_by_id,
+    toggle_task_completion,
+    update_task,
+)
 
 
 def validate_title(title: str) -> tuple[bool, str | None]:
@@ -134,7 +143,7 @@ def display_task_details(task: Task) -> None:
     description = task.description.strip() if task.description.strip() else "(No description)"
 
     # Format completed status
-    completed_status = "Yes" if task.completed else "No"
+    completed_status = "\033[92m✓\033[0m" if task.completed else "\033[91m✗\033[0m"
 
     # Display all fields with labels
     print(f"ID: {task.id}")
@@ -319,3 +328,75 @@ def delete_task_prompt() -> None:
     else:
         # User canceled with N/n
         print(MSG_DELETION_CANCELED)
+
+
+def prompt_for_mark_complete_confirmation(task_title: str, current_status: bool) -> bool:
+    """Prompt user to confirm task completion status toggle with Y/N response.
+
+    Args:
+        task_title: Title of the task to toggle (for context)
+        current_status: Current completion status (True = complete, False = incomplete)
+
+    Returns:
+        True if user confirms toggle (Y/y), False if user cancels (N/n)
+    """
+    # Dynamic prompt based on current status
+    action = "complete" if not current_status else "incomplete"
+    prompt = f"Mark task '{task_title}' as {action}? (Y/N): "
+
+    while True:
+        # Get user input and normalize (strip whitespace, uppercase)
+        response = input(prompt).strip().upper()
+
+        # Check for confirmation
+        if response == "Y":
+            return True
+
+        # Check for cancellation
+        if response == "N":
+            return False
+
+        # Invalid response - show error and re-prompt
+        print(ERROR_MARK_COMPLETE_CONFIRMATION)
+
+
+def mark_complete_prompt() -> None:
+    """Orchestrate the complete mark complete/incomplete workflow with user interaction.
+
+    Workflow:
+        1. Prompt for task ID and validate
+        2. Retrieve task (validates existence)
+        3. Display confirmation prompt with dynamic action (complete/incomplete)
+        4. On confirmation: toggle status, update timestamp, show success
+        5. On cancellation: show cancellation message, no changes
+        6. On error: show error message, return to main menu
+    """
+    try:
+        # Step 1: Get and validate task ID
+        task_id = prompt_for_task_id()
+
+        # Step 2: Retrieve task (validates existence)
+        task = get_task_by_id(task_id)
+
+    except ValueError as e:
+        # Handle ID validation errors (ERROR 101, 102, 103)
+        print(str(e))
+        return  # Return to main menu without showing confirmation
+
+    # Step 3: Get user confirmation (shows task title and action for context)
+    confirmed = prompt_for_mark_complete_confirmation(task.title, task.completed)
+
+    # Step 4: Execute toggle or cancellation
+    if confirmed:
+        # User confirmed with Y/y
+        toggle_task_completion(task_id)
+
+        # Determine success message based on NEW status
+        # Note: task.completed was toggled inside toggle_task_completion()
+        if task.completed:
+            print(MSG_TASK_MARKED_COMPLETE)
+        else:
+            print(MSG_TASK_MARKED_INCOMPLETE)
+    else:
+        # User canceled with N/n
+        print(MSG_MARK_COMPLETE_CANCELED)

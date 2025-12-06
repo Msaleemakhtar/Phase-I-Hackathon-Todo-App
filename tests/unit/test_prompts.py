@@ -249,7 +249,7 @@ class TestDisplayTaskDetails:
             description="Milk, eggs, bread",
             completed=True,
             created_at="2025-12-06T10:00:00.000000Z",
-            updated_at="2025-12-06T11:30:00.000000Z",
+            updated_at="2025-12-06T11:30:00:00.000000Z",
         )
 
         display_task_details(task)
@@ -258,9 +258,9 @@ class TestDisplayTaskDetails:
         assert "ID: 5" in captured.out
         assert "Title: Buy groceries" in captured.out
         assert "Description: Milk, eggs, bread" in captured.out
-        assert "Completed: Yes" in captured.out
+        assert "Completed: \033[92m✓\033[0m" in captured.out
         assert "Created At: 2025-12-06T10:00:00.000000Z" in captured.out
-        assert "Updated At: 2025-12-06T11:30:00.000000Z" in captured.out
+        assert "Updated At: 2025-12-06T11:30:00:00.000000Z" in captured.out
 
     def test_display_task_details_incomplete_task(self, capsys):
         """Display 'No' for incomplete task."""
@@ -278,7 +278,7 @@ class TestDisplayTaskDetails:
         display_task_details(task)
 
         captured = capsys.readouterr()
-        assert "Completed: No" in captured.out
+        assert "Completed: \033[91m✗\033[0m" in captured.out
 
     def test_display_task_details_empty_description(self, capsys):
         """Display '(No description)' for empty description."""
@@ -842,3 +842,119 @@ class TestPromptForDeleteConfirmation:
         # Verify ERROR 105 was printed
         captured = capsys.readouterr()
         assert "ERROR 105" in captured.out
+
+
+class TestMarkCompletePrompt:
+    """Tests for prompt_for_mark_complete_confirmation and mark_complete_prompt."""
+
+    def test_prompt_for_mark_complete_confirmation_yes_uppercase(self):
+        """Test confirmation returns True for 'Y' input."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="Y"):
+            result = prompt_for_mark_complete_confirmation("Test task", False)
+            assert result is True
+
+    def test_prompt_for_mark_complete_confirmation_yes_lowercase(self):
+        """Test confirmation returns True for 'y' input."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="y"):
+            result = prompt_for_mark_complete_confirmation("Test task", False)
+            assert result is True
+
+    def test_prompt_for_mark_complete_confirmation_no_uppercase(self):
+        """Test confirmation returns False for 'N' input."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="N"):
+            result = prompt_for_mark_complete_confirmation("Test task", True)
+            assert result is False
+
+    def test_prompt_for_mark_complete_confirmation_no_lowercase(self):
+        """Test confirmation returns False for 'n' input."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="n"):
+            result = prompt_for_mark_complete_confirmation("Test task", True)
+            assert result is False
+
+    def test_prompt_for_mark_complete_confirmation_with_whitespace(self):
+        """Test confirmation strips whitespace before validation."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="  Y  "):
+            result = prompt_for_mark_complete_confirmation("Test task", False)
+            assert result is True
+
+    def test_prompt_for_mark_complete_confirmation_invalid_then_valid(self):
+        """Test confirmation retries on invalid input then accepts valid."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", side_effect=["yes", "maybe", "Y"]):
+            with patch("builtins.print") as mock_print:
+                result = prompt_for_mark_complete_confirmation("Test task", False)
+                assert result is True
+                # Verify error message printed twice (for "yes" and "maybe")
+                assert mock_print.call_count == 2
+
+    def test_prompt_for_mark_complete_confirmation_dynamic_prompt_incomplete(self):
+        """Test confirmation prompt shows 'complete' for incomplete tasks."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="Y") as mock_input:
+            prompt_for_mark_complete_confirmation("Buy milk", False)
+            # Verify prompt includes "as complete"
+            mock_input.assert_called_with("Mark task 'Buy milk' as complete? (Y/N): ")
+
+    def test_prompt_for_mark_complete_confirmation_dynamic_prompt_complete(self):
+        """Test confirmation prompt shows 'incomplete' for complete tasks."""
+        from src.ui.prompts import prompt_for_mark_complete_confirmation
+
+        with patch("builtins.input", return_value="Y") as mock_input:
+            prompt_for_mark_complete_confirmation("Buy milk", True)
+            # Verify prompt includes "as incomplete"
+            mock_input.assert_called_with("Mark task 'Buy milk' as incomplete? (Y/N): ")
+
+    def test_mark_complete_prompt_full_flow_confirm(self):
+        """Test mark complete prompt with valid ID and confirmation."""
+        # Setup: Create task
+        from src.services.task_service import create_task
+
+        create_task("Test task", "Description")
+
+        # Mock user inputs: task ID "1", then "Y"
+        with patch("builtins.input", side_effect=["1", "Y"]):
+            with patch("builtins.print") as mock_print:
+                from src.ui.prompts import mark_complete_prompt
+
+                mark_complete_prompt()
+                # Verify success message printed
+                mock_print.assert_called_with("Task marked as complete.")
+
+    def test_mark_complete_prompt_full_flow_cancel(self):
+        """Test mark complete prompt with valid ID and cancellation."""
+        # Setup: Create task
+        from src.services.task_service import create_task
+
+        create_task("Test task", "Description")
+
+        # Mock user inputs: task ID "1", then "N"
+        with patch("builtins.input", side_effect=["1", "N"]):
+            with patch("builtins.print") as mock_print:
+                from src.ui.prompts import mark_complete_prompt
+
+                mark_complete_prompt()
+                # Verify cancellation message printed
+                mock_print.assert_called_with("Operation canceled.")
+
+    def test_mark_complete_prompt_invalid_task_id(self):
+        """Test mark complete prompt with non-existent task ID."""
+        # Mock user input: non-existent task ID
+        with patch("builtins.input", return_value="999"):
+            with patch("builtins.print") as mock_print:
+                from src.ui.prompts import mark_complete_prompt
+
+                mark_complete_prompt()
+                # Verify error message printed
+                mock_print.assert_called_with("ERROR 101: Task with ID 999 not found.")

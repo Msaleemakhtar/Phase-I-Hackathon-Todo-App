@@ -130,3 +130,28 @@ def delete_task(task_id: int) -> Task:
 
     # Return deleted task for UI confirmation message
     return task
+
+
+def toggle_task_completion(task_id: int) -> Task:
+    """Toggle a task's completion status between complete and incomplete.
+
+    Args:
+        task_id: The unique identifier of the task to toggle
+
+    Returns:
+        Updated Task object with toggled completed field and new updated_at timestamp
+
+    Raises:
+        ValueError: If task_id <= 0 (ERROR 103)
+        ValueError: If no task with task_id exists (ERROR 101)
+    """
+    # Reuse get_task_by_id() for validation and retrieval
+    task = get_task_by_id(task_id)
+
+    # Toggle completed status (False → True or True → False)
+    task.completed = not task.completed
+
+    # Update timestamp (same pattern as update_task)
+    task.updated_at = Task.generate_timestamp()
+
+    return task

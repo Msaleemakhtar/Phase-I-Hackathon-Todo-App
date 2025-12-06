@@ -11,8 +11,6 @@ Status: Design Contract
 
 from typing import Protocol
 
-from src.models.task import Task
-
 
 class UpdateTaskUIProtocol(Protocol):
     """

@@ -61,23 +61,7 @@ class TestMainMenu:
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
-
-    @patch("builtins.input")
-    @patch("builtins.print")
-    def test_main_menu_future_features(self, mock_print, mock_input):
-        """Test future feature options show not implemented message."""
-        # Test option 6 (Mark Complete - future feature)
-        mock_input.side_effect = ["6", "7"]
-
-        main()
-
-        print_calls = [str(call) for call in mock_print.call_args_list]
-        # Should see "not implemented" message 1 time (for option 6)
-        not_implemented_count = sum(
-            1 for call in print_calls if "Feature not yet implemented" in call
-        )
-        assert not_implemented_count == 1
+        assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
@@ -119,7 +103,7 @@ class TestMainMenu:
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
+        assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
@@ -130,7 +114,7 @@ class TestMainMenu:
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
+        assert any("Invalid option. Please select 1-7." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")

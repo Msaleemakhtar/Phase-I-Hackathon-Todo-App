@@ -8,6 +8,7 @@ from src.ui.prompts import (
     display_task_list,
     get_task_description,
     get_task_title,
+    mark_complete_prompt,
     prompt_for_task_id,
     update_task_prompt,
 )
@@ -49,6 +50,16 @@ def handle_view_task_details() -> None:
         print(e)
 
 
+def handle_mark_complete() -> None:
+    """Handle Mark Complete user flow.
+
+    Prompts user for task ID, displays confirmation with dynamic action
+    (complete/incomplete), toggles task status on confirmation, and updates
+    timestamp. Returns to main menu after completion or cancellation.
+    """
+    mark_complete_prompt()
+
+
 def main() -> None:
     """Main application loop."""
     while True:
@@ -58,7 +69,7 @@ def main() -> None:
         print("3. View Task Details")
         print("4. Update Task")
         print("5. Delete Task")
-        print("6. Mark Complete")  # Future feature
+        print("6. Mark Complete")
         print("7. Exit")
 
         choice = input("\nSelect option: ")
@@ -73,11 +84,13 @@ def main() -> None:
             update_task_prompt()
         elif choice == "5":
             delete_task_prompt()
+        elif choice == "6":
+            handle_mark_complete()
         elif choice == "7":
             print("Goodbye!")
             break
         else:
-            print("Feature not yet implemented or invalid option.")
+            print("Invalid option. Please select 1-7.")
 
 
 if __name__ == "__main__":
