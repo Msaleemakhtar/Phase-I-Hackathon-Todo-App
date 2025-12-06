@@ -1,5 +1,10 @@
 """Application entry point and main menu."""
 
+from pyfiglet import figlet_format
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
 from src.constants import MSG_TASK_ADDED
 from src.services.task_service import create_task, get_all_tasks, get_task_by_id
 from src.ui.prompts import (
@@ -62,15 +67,29 @@ def handle_mark_complete() -> None:
 
 def main() -> None:
     """Main application loop."""
+    console = Console()
     while True:
-        print("\n=== Todo App ===")
-        print("1. Add Task")
-        print("2. View Tasks")
-        print("3. View Task Details")
-        print("4. Update Task")
-        print("5. Delete Task")
-        print("6. Mark Complete")
-        print("7. Exit")
+        # Create large ASCII art title
+        title_art = figlet_format("TODO APP", font="standard")
+        title_text = Text(title_art, style="bold cyan", justify="center")
+
+        console.print(
+            Panel(
+                title_text,
+                title="[bold green]✨ WELCOME TO TODO APP ✨[/bold green]",
+                subtitle="[italic]Manage your tasks efficiently[/italic]",
+                border_style="cyan",
+                padding=(1, 2),
+            )
+        )
+        console.print("\n")
+        console.print("  [bold green]1.  ADD TASK[/bold green]")
+        console.print("  [bold yellow]2.  VIEW TASKS[/bold yellow]")
+        console.print("  [bold blue]3.  VIEW TASK DETAILS[/bold blue]")
+        console.print("  [bold magenta]4.  UPDATE TASK[/bold magenta]")
+        console.print("  [bold red]5.  DELETE TASK[/bold red]")
+        console.print("  [bold cyan]6.  MARK COMPLETE[/bold cyan]")
+        console.print("  [bold white]7.  EXIT[/bold white]")
 
         choice = input("\nSelect option: ")
 
@@ -87,10 +106,10 @@ def main() -> None:
         elif choice == "6":
             handle_mark_complete()
         elif choice == "7":
-            print("Goodbye!")
+            console.print("Goodbye!")
             break
         else:
-            print("Invalid option. Please select 1-7.")
+            console.print("[bold red]Invalid option. Please select 1-7.[/bold red]")
 
 
 if __name__ == "__main__":

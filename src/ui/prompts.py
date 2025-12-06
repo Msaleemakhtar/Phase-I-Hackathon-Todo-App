@@ -1,5 +1,10 @@
 """User input prompts and validation."""
 
+from datetime import datetime
+
+from rich.console import Console
+from rich.table import Table
+
 from src.constants import (
     ERROR_DESCRIPTION_TOO_LONG,
     ERROR_INVALID_CONFIRMATION,
@@ -22,7 +27,6 @@ from src.constants import (
     PROMPT_FIELD_SELECTION,
     PROMPT_NEW_DESCRIPTION,
     PROMPT_NEW_TITLE,
-    PROMPT_PAGINATION,
     PROMPT_TASK_ID,
     PROMPT_TITLE,
 )
@@ -96,62 +100,56 @@ def get_task_description() -> str:
 
 
 def display_task_list(tasks: list[Task]) -> None:
-    """Display a formatted list of all tasks with completion indicators and pagination.
+    """Display a formatted list of all tasks using a rich Table.
 
     Args:
         tasks: List of Task objects to display (may be empty)
-
-    Behavior:
-        - If tasks is empty: Display "No tasks found." and return
-        - For each task: Display "{id}. [{indicator}] {title}"
-          where indicator is "[X]" if completed, "[ ]" if not
-        - After every 20 tasks (if more tasks remain): Display "Press Enter to continue..."
-          and wait for user input
-        - After all tasks: Display "Total: {count} tasks"
     """
+    console = Console()
+
     if not tasks:
-        print(MSG_NO_TASKS)
+        console.print(MSG_NO_TASKS)
         return
 
-    for index, task in enumerate(tasks, start=1):
-        indicator = "[X]" if task.completed else "[ ]"
-        print(f"{task.id}. {indicator} {task.title}")
+    table = Table(
+        show_header=True,
+        header_style="bold magenta",
+        title="Tasks" if len(tasks) > 1 else f"Task Details - ID {tasks[0].id}",
+    )
+    table.add_column("ID", style="dim", width=6)
+    table.add_column("Title", min_width=15)
+    table.add_column("Description", min_width=15)
+    table.add_column("Status", justify="center", width=10)
+    table.add_column("Created", justify="right", width=19, no_wrap=True)
+    table.add_column("Updated", justify="right", width=19, no_wrap=True)
 
-        # Pagination: pause every 20 tasks if more remain
-        if index % 20 == 0 and index < len(tasks):
-            input(PROMPT_PAGINATION)
+    for task in tasks:
+        description = task.description.strip() if task.description.strip() else "(No description)"
+        status = "[green]Completed[/green]" if task.completed else "[yellow]Pending[/yellow]"
+        created_dt = datetime.fromisoformat(task.created_at.replace("Z", "+00:00"))
+        updated_dt = datetime.fromisoformat(task.updated_at.replace("Z", "+00:00"))
+        created = created_dt.strftime("%Y-%m-%d %H:%M:%S")
+        updated = updated_dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    # Display task count summary
-    count = len(tasks)
-    task_word = "task" if count == 1 else "tasks"
-    print(f"\nTotal: {count} {task_word}")
+        table.add_row(
+            str(task.id),
+            task.title,
+            description,
+            status,
+            created,
+            updated,
+        )
+
+    console.print(table)
 
 
 def display_task_details(task: Task) -> None:
-    """Display detailed information for a single task with all fields labeled.
+    """Display detailed information for a single task in a rich Table.
 
     Args:
         task: The Task object to display in detail
-
-    Behavior:
-        - Display all 6 task fields with labels
-        - Empty descriptions show "(No description)" placeholder
-        - Completed field shows "Yes" or "No" (not True/False)
-        - Timestamps displayed in ISO 8601 format as-is
     """
-    # Handle empty description
-    description = task.description.strip() if task.description.strip() else "(No description)"
-
-    # Format completed status
-    completed_status = "\033[92m✓\033[0m" if task.completed else "\033[91m✗\033[0m"
-
-    # Display all fields with labels
-    print(f"ID: {task.id}")
-    print(f"Title: {task.title}")
-    print(f"Description: {description}")
-    print(f"Completed: {completed_status}")
-    print(f"Created At: {task.created_at}")
-    print(f"Updated At: {task.updated_at}")
+    display_task_list([task])
 
 
 def prompt_for_task_id() -> int:
