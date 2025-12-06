@@ -3,18 +3,24 @@
 from src.constants import (
     ERROR_DESCRIPTION_TOO_LONG,
     ERROR_INVALID_INPUT,
+    ERROR_INVALID_OPTION,
     ERROR_INVALID_TASK_ID,
     ERROR_TITLE_REQUIRED,
     ERROR_TITLE_TOO_LONG,
     MAX_DESCRIPTION_LENGTH,
     MAX_TITLE_LENGTH,
     MSG_NO_TASKS,
+    MSG_TASK_UPDATED,
     PROMPT_DESCRIPTION,
+    PROMPT_FIELD_SELECTION,
+    PROMPT_NEW_DESCRIPTION,
+    PROMPT_NEW_TITLE,
     PROMPT_PAGINATION,
     PROMPT_TASK_ID,
     PROMPT_TITLE,
 )
 from src.models.task import Task
+from src.services.task_service import get_task_by_id, update_task
 
 
 def validate_title(title: str) -> tuple[bool, str | None]:
@@ -159,3 +165,100 @@ def prompt_for_task_id() -> int:
         raise ValueError(ERROR_INVALID_TASK_ID)
 
     return task_id
+
+
+def display_field_selection_menu() -> None:
+    """Display the field selection menu for choosing which field(s) to update."""
+    print("\nSelect fields to update:")
+    print("1. Update Title Only")
+    print("2. Update Description Only")
+    print("3. Update Both Title and Description")
+
+
+def prompt_for_field_choice() -> int:
+    """Prompt user to select which field(s) to update and validate the choice.
+
+    Returns:
+        Valid field selection choice (1, 2, or 3)
+    """
+    while True:
+        try:
+            choice = int(input(PROMPT_FIELD_SELECTION))
+            if 1 <= choice <= 3:
+                return choice
+            print(ERROR_INVALID_OPTION)
+        except ValueError:
+            print(ERROR_INVALID_OPTION)
+
+
+def get_new_task_title(current_title: str) -> str:
+    """Prompt user for new task title with validation loop.
+
+    Args:
+        current_title: The task's current title (for display context)
+
+    Returns:
+        Valid new task title (stripped)
+    """
+    while True:
+        title = input(PROMPT_NEW_TITLE)
+        is_valid, error = validate_title(title)
+        if is_valid:
+            return title.strip()
+        print(error)
+
+
+def get_new_task_description(current_description: str) -> str:
+    """Prompt user for new task description with validation loop.
+
+    Args:
+        current_description: The task's current description (for display context)
+
+    Returns:
+        Valid new task description (stripped, may be empty)
+    """
+    while True:
+        description = input(PROMPT_NEW_DESCRIPTION)
+        is_valid, error = validate_description(description)
+        if is_valid:
+            return description.strip()
+        print(error)
+
+
+def update_task_prompt() -> None:
+    """Orchestrate the complete update task workflow with user interaction."""
+    try:
+        # Step 1: Get and validate task ID
+        task_id = prompt_for_task_id()
+
+        # Step 2: Retrieve task (may raise ERROR 101)
+        task = get_task_by_id(task_id)
+    except ValueError as e:
+        print(str(e))
+        return  # Return to main menu on error
+
+    # Step 3: Display current values
+    print()
+    display_task_details(task)
+
+    # Step 4: Get field selection
+    display_field_selection_menu()
+    choice = prompt_for_field_choice()
+
+    # Step 5: Collect new value(s) based on choice
+    new_title = None
+    new_description = None
+
+    if choice == 1:  # Title only
+        new_title = get_new_task_title(task.title)
+    elif choice == 2:  # Description only
+        new_description = get_new_task_description(task.description)
+    else:  # choice == 3, Both
+        new_title = get_new_task_title(task.title)
+        new_description = get_new_task_description(task.description)
+
+    # Step 6: Update task
+    update_task(task_id, new_title, new_description)
+
+    # Step 7: Display success message
+    print(MSG_TASK_UPDATED)

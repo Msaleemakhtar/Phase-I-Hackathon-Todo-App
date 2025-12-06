@@ -74,3 +74,36 @@ def get_task_by_id(task_id: int) -> Task:
 
     # Task not found
     raise ValueError(ERROR_TASK_NOT_FOUND.format(task_id=task_id))
+
+
+def update_task(
+    task_id: int,
+    new_title: str | None = None,
+    new_description: str | None = None,
+) -> Task:
+    """Update an existing task's title and/or description fields.
+
+    Args:
+        task_id: The unique identifier of the task to update
+        new_title: New title to set (None = no change)
+        new_description: New description to set (None = no change)
+
+    Returns:
+        Updated Task object (same instance, modified in-place)
+
+    Raises:
+        ValueError: If task_id invalid or task not found (ERROR 101/103)
+    """
+    # Reuse existing get_task_by_id for validation and lookup
+    task = get_task_by_id(task_id)
+
+    # Update fields if new values provided
+    if new_title is not None:
+        task.title = new_title
+    if new_description is not None:
+        task.description = new_description
+
+    # Always update timestamp
+    task.updated_at = Task.generate_timestamp()
+
+    return task
