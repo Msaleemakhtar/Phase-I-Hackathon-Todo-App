@@ -39,3 +39,18 @@ MSG_NO_TASKS = "No tasks found."
 PROMPT_FIELD_SELECTION = "Select update option (1-3): "
 PROMPT_NEW_TITLE = "Enter New Task Title: "
 PROMPT_NEW_DESCRIPTION = "Enter New Task Description (press Enter to clear): "
+
+# Error codes and messages - Mark Complete feature
+ERROR_MARK_COMPLETE_NOT_FOUND = "ERROR 201: Task with ID {task_id} not found."
+ERROR_MARK_COMPLETE_INVALID_INPUT = "ERROR 202: Invalid input. Please enter a numeric task ID."
+ERROR_MARK_COMPLETE_INVALID_ID = "ERROR 203: Task ID must be a positive number."
+# ERROR 204: Reserved for future use
+ERROR_MARK_COMPLETE_CONFIRMATION = "ERROR 205: Invalid input. Please enter Y or N."
+
+# Success messages - Mark Complete feature
+MSG_TASK_MARKED_COMPLETE = "Task marked as complete."
+MSG_TASK_MARKED_INCOMPLETE = "Task marked as incomplete."
+MSG_MARK_COMPLETE_CANCELED = "Operation canceled."
+
+# Prompts - Mark Complete feature
+PROMPT_MARK_COMPLETE_ID = "Enter Task ID to mark complete/incomplete: "

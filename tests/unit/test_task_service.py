@@ -416,3 +416,106 @@ class TestDeleteTask:
         assert task2.id == 2
         assert task4.id == 4
         assert task5.id == 5
+
+
+class TestToggleTaskCompletion:
+    """Tests for toggle_task_completion() function."""
+
+    def test_toggle_incomplete_to_complete(self):
+        """Test toggling task from incomplete to complete updates status and timestamp."""
+        # Setup: Create incomplete task
+        task = task_service.create_task("Buy groceries", "Milk and eggs")
+        original_updated_at = task.updated_at
+        assert task.completed is False
+
+        # Execute: Toggle to complete
+        result = task_service.toggle_task_completion(task.id)
+
+        # Verify: Status changed to True
+        assert result.completed is True
+        # Verify: Timestamp updated
+        assert result.updated_at != original_updated_at
+        # Verify: Other fields unchanged
+        assert result.id == task.id
+        assert result.title == "Buy groceries"
+        assert result.description == "Milk and eggs"
+        assert result.created_at == task.created_at
+
+    def test_toggle_complete_to_incomplete(self):
+        """Test toggling task from complete to incomplete updates status and timestamp."""
+        # Setup: Create task and mark it complete
+        task = task_service.create_task("Finish project", "Submit by Friday")
+        task_service.toggle_task_completion(task.id)  # Now complete
+        original_updated_at = task.updated_at
+        assert task.completed is True
+
+        # Execute: Toggle back to incomplete
+        result = task_service.toggle_task_completion(task.id)
+
+        # Verify: Status changed to False
+        assert result.completed is False
+        # Verify: Timestamp updated
+        assert result.updated_at != original_updated_at
+        # Verify: Other fields unchanged
+        assert result.id == task.id
+        assert result.title == "Finish project"
+
+    def test_toggle_updates_timestamp(self):
+        """Test that toggle always updates updated_at timestamp."""
+        # Setup
+        task = task_service.create_task("Test task", "Description")
+        original_updated_at = task.updated_at
+
+        # Execute: Toggle (doesn't matter which direction)
+        task_service.toggle_task_completion(task.id)
+
+        # Verify: Timestamp is different
+        assert task.updated_at != original_updated_at
+
+    def test_toggle_preserves_created_at(self):
+        """Test that toggle never modifies created_at timestamp."""
+        # Setup
+        task = task_service.create_task("Test task", "Description")
+        original_created_at = task.created_at
+
+        # Execute: Toggle multiple times
+        task_service.toggle_task_completion(task.id)
+        task_service.toggle_task_completion(task.id)
+        task_service.toggle_task_completion(task.id)
+
+        # Verify: created_at never changed
+        assert task.created_at == original_created_at
+
+    def test_toggle_preserves_other_fields(self):
+        """Test that id, title, description are not modified."""
+        task = task_service.create_task("Test task", "Description")
+        original_id = task.id
+        original_title = task.title
+        original_description = task.description
+
+        task_service.toggle_task_completion(task.id)
+
+        assert task.id == original_id
+        assert task.title == original_title
+        assert task.description == original_description
+
+    def test_toggle_nonexistent_task(self):
+        """Test toggling non-existent task raises ValueError with ERROR 101."""
+        # Setup: Empty task list
+        task_service._task_storage.clear()
+
+        # Execute & Verify: Raises ValueError with task not found message
+        with pytest.raises(ValueError, match="ERROR 101: Task with ID 999 not found"):
+            task_service.toggle_task_completion(999)
+
+    def test_toggle_zero_task_id(self):
+        """Test toggling with zero task ID raises ValueError with ERROR 103."""
+        # Execute & Verify: Raises ValueError for invalid ID
+        with pytest.raises(ValueError, match="ERROR 103: Task ID must be a positive number"):
+            task_service.toggle_task_completion(0)
+
+    def test_toggle_negative_task_id(self):
+        """Test toggling with negative task ID raises ValueError with ERROR 103."""
+        # Execute & Verify: Raises ValueError for invalid ID
+        with pytest.raises(ValueError, match="ERROR 103: Task ID must be a positive number"):
+            task_service.toggle_task_completion(-5)

@@ -97,7 +97,7 @@ class TestViewTaskDetailsFlow:
         assert "ID: 1" in captured.out
         assert "Title: Buy groceries" in captured.out
         assert "Description: Milk and eggs" in captured.out
-        assert "Completed: No" in captured.out
+        assert "Completed: \033[91m✗\033[0m" in captured.out
         assert "Created At:" in captured.out
         assert "Updated At:" in captured.out
 
@@ -225,7 +225,7 @@ class TestViewTasksCompleteFlow:
         assert "ID: 2" in captured.out
         assert "Title: Buy groceries" in captured.out
         assert "Description: Milk, eggs, bread" in captured.out
-        assert "Completed: No" in captured.out
+        assert "Completed: \033[91m✗\033[0m" in captured.out
         assert "Created At:" in captured.out
         assert "Updated At:" in captured.out
 
