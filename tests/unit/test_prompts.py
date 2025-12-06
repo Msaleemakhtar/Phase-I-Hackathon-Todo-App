@@ -398,3 +398,378 @@ class TestPromptForTaskId:
             prompt_for_task_id()
 
         assert "ERROR 102" in str(exc_info.value)
+
+
+class TestDisplayFieldSelectionMenu:
+    """Tests for display_field_selection_menu() function."""
+
+    def test_display_field_selection_menu_output(self, capsys):
+        """Test field selection menu displays correct format."""
+        from src.ui.prompts import display_field_selection_menu
+
+        display_field_selection_menu()
+
+        captured = capsys.readouterr()
+        assert "Select fields to update:" in captured.out
+        assert "1. Update Title Only" in captured.out
+        assert "2. Update Description Only" in captured.out
+        assert "3. Update Both Title and Description" in captured.out
+
+
+class TestPromptForFieldChoice:
+    """Tests for prompt_for_field_choice() function."""
+
+    def test_prompt_for_field_choice_valid_option_1(self, monkeypatch):
+        """Accept choice 1 (Title Only)."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["1"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+        assert choice == 1
+
+    def test_prompt_for_field_choice_valid_option_2(self, monkeypatch):
+        """Accept choice 2 (Description Only)."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["2"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+        assert choice == 2
+
+    def test_prompt_for_field_choice_valid_option_3(self, monkeypatch):
+        """Accept choice 3 (Both)."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["3"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+        assert choice == 3
+
+    def test_prompt_for_field_choice_invalid_option_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 104 for invalid numeric option and re-prompt."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["4", "1"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+
+        captured = capsys.readouterr()
+        assert "ERROR 104" in captured.out
+        assert choice == 1
+
+    def test_prompt_for_field_choice_zero_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 104 for zero and re-prompt."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["0", "2"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+
+        captured = capsys.readouterr()
+        assert "ERROR 104" in captured.out
+        assert choice == 2
+
+    def test_prompt_for_field_choice_non_numeric_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 104 for non-numeric input and re-prompt."""
+        from src.ui.prompts import prompt_for_field_choice
+
+        inputs = iter(["abc", "3"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        choice = prompt_for_field_choice()
+
+        captured = capsys.readouterr()
+        assert "ERROR 104" in captured.out
+        assert choice == 3
+
+
+class TestGetNewTaskTitle:
+    """Tests for get_new_task_title() function."""
+
+    def test_get_new_task_title_valid(self, monkeypatch):
+        """Accept valid new title."""
+        from src.ui.prompts import get_new_task_title
+
+        inputs = iter(["Updated Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original Title")
+        assert title == "Updated Title"
+
+    def test_get_new_task_title_strips_whitespace(self, monkeypatch):
+        """Strip leading/trailing whitespace from title."""
+        from src.ui.prompts import get_new_task_title
+
+        inputs = iter(["  Updated Title  "])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original")
+        assert title == "Updated Title"
+
+    def test_get_new_task_title_empty_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 001 for empty title and re-prompt."""
+        from src.ui.prompts import get_new_task_title
+
+        inputs = iter(["", "Valid Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original")
+
+        captured = capsys.readouterr()
+        assert "ERROR 001" in captured.out
+        assert title == "Valid Title"
+
+    def test_get_new_task_title_whitespace_only_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 001 for whitespace-only title and re-prompt."""
+        from src.ui.prompts import get_new_task_title
+
+        inputs = iter(["   ", "Valid Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original")
+
+        captured = capsys.readouterr()
+        assert "ERROR 001" in captured.out
+        assert title == "Valid Title"
+
+    def test_get_new_task_title_too_long_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 002 for title > 200 chars and re-prompt."""
+        from src.ui.prompts import get_new_task_title
+
+        long_title = "A" * 201
+        inputs = iter([long_title, "Valid Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original")
+
+        captured = capsys.readouterr()
+        assert "ERROR 002" in captured.out
+        assert title == "Valid Title"
+
+    def test_get_new_task_title_exactly_200_chars_valid(self, monkeypatch):
+        """Accept title with exactly 200 characters."""
+        from src.ui.prompts import get_new_task_title
+
+        exact_title = "A" * 200
+        inputs = iter([exact_title])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        title = get_new_task_title("Original")
+        assert title == exact_title
+
+
+class TestGetNewTaskDescription:
+    """Tests for get_new_task_description() function."""
+
+    def test_get_new_task_description_valid(self, monkeypatch):
+        """Accept valid new description."""
+        from src.ui.prompts import get_new_task_description
+
+        inputs = iter(["Updated Description"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        description = get_new_task_description("Original Description")
+        assert description == "Updated Description"
+
+    def test_get_new_task_description_empty_allowed(self, monkeypatch):
+        """Allow empty description (valid)."""
+        from src.ui.prompts import get_new_task_description
+
+        inputs = iter([""])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        description = get_new_task_description("Original")
+        assert description == ""
+
+    def test_get_new_task_description_strips_whitespace(self, monkeypatch):
+        """Strip leading/trailing whitespace from description."""
+        from src.ui.prompts import get_new_task_description
+
+        inputs = iter(["  Updated Description  "])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        description = get_new_task_description("Original")
+        assert description == "Updated Description"
+
+    def test_get_new_task_description_too_long_reprompts(self, monkeypatch, capsys):
+        """Display ERROR 003 for description > 1000 chars and re-prompt."""
+        from src.ui.prompts import get_new_task_description
+
+        long_desc = "A" * 1001
+        inputs = iter([long_desc, "Valid Description"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        description = get_new_task_description("Original")
+
+        captured = capsys.readouterr()
+        assert "ERROR 003" in captured.out
+        assert description == "Valid Description"
+
+    def test_get_new_task_description_exactly_1000_chars_valid(self, monkeypatch):
+        """Accept description with exactly 1000 characters."""
+        from src.ui.prompts import get_new_task_description
+
+        exact_desc = "A" * 1000
+        inputs = iter([exact_desc])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        description = get_new_task_description("Original")
+        assert description == exact_desc
+
+
+class TestUpdateTaskPrompt:
+    """Tests for update_task_prompt() orchestrator function."""
+
+    @pytest.fixture(autouse=True)
+    def setup_storage(self):
+        """Reset task storage before each test."""
+        from src.services import task_service
+
+        task_service._task_storage.clear()
+        task_service.create_task("Original Title", "Original Description")
+        yield
+        task_service._task_storage.clear()
+
+    def test_update_task_prompt_option_1_title_only(self, monkeypatch, capsys):
+        """Test complete flow for option 1 (title only)."""
+        from src.services import task_service
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "1", "Updated Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        task = task_service.get_task_by_id(1)
+        assert task.title == "Updated Title"
+        assert task.description == "Original Description"
+
+        captured = capsys.readouterr()
+        assert "Task updated successfully." in captured.out
+
+    def test_update_task_prompt_option_2_description_only(self, monkeypatch, capsys):
+        """Test complete flow for option 2 (description only)."""
+        from src.services import task_service
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "2", "Updated Description"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        task = task_service.get_task_by_id(1)
+        assert task.title == "Original Title"
+        assert task.description == "Updated Description"
+
+        captured = capsys.readouterr()
+        assert "Task updated successfully." in captured.out
+
+    def test_update_task_prompt_option_3_both_fields(self, monkeypatch, capsys):
+        """Test complete flow for option 3 (both fields)."""
+        from src.services import task_service
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "3", "Updated Title", "Updated Description"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        task = task_service.get_task_by_id(1)
+        assert task.title == "Updated Title"
+        assert task.description == "Updated Description"
+
+        captured = capsys.readouterr()
+        assert "Task updated successfully." in captured.out
+
+    def test_update_task_prompt_task_not_found(self, monkeypatch, capsys):
+        """Test ERROR 101 displayed when task doesn't exist."""
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["99"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        captured = capsys.readouterr()
+        assert "ERROR 101" in captured.out
+
+    def test_update_task_prompt_invalid_task_id_zero(self, monkeypatch, capsys):
+        """Test ERROR 103 displayed for task_id = 0."""
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["0"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        captured = capsys.readouterr()
+        assert "ERROR 103" in captured.out
+
+    def test_update_task_prompt_invalid_task_id_negative(self, monkeypatch, capsys):
+        """Test ERROR 103 displayed for negative task_id."""
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["-1"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        captured = capsys.readouterr()
+        assert "ERROR 103" in captured.out
+
+    def test_update_task_prompt_invalid_task_id_non_numeric(self, monkeypatch, capsys):
+        """Test ERROR 102 displayed for non-numeric task_id."""
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["abc"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        captured = capsys.readouterr()
+        assert "ERROR 102" in captured.out
+
+    def test_update_task_prompt_displays_current_values(self, monkeypatch, capsys):
+        """Test that current task values are displayed before update."""
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "1", "Updated"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        captured = capsys.readouterr()
+        assert "Original Title" in captured.out
+        assert "Original Description" in captured.out
+
+    def test_update_task_prompt_title_unchanged_when_option_2(self, monkeypatch):
+        """Verify title unchanged when option 2 (description only) selected."""
+        from src.services import task_service
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "2", "New Description"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        task = task_service.get_task_by_id(1)
+        assert task.title == "Original Title"
+
+    def test_update_task_prompt_description_unchanged_when_option_1(self, monkeypatch):
+        """Verify description unchanged when option 1 (title only) selected."""
+        from src.services import task_service
+        from src.ui.prompts import update_task_prompt
+
+        inputs = iter(["1", "1", "New Title"])
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        update_task_prompt()
+
+        task = task_service.get_task_by_id(1)
+        assert task.description == "Original Description"

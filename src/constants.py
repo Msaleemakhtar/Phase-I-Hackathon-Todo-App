@@ -14,8 +14,12 @@ ERROR_TASK_NOT_FOUND = "ERROR 101: Task with ID {task_id} not found."
 ERROR_INVALID_INPUT = "ERROR 102: Invalid input. Please enter a numeric task ID."
 ERROR_INVALID_TASK_ID = "ERROR 103: Task ID must be a positive number."
 
+# Error codes and messages - Update Task feature
+ERROR_INVALID_OPTION = "ERROR 104: Invalid option. Please select 1, 2, or 3."
+
 # Success messages
 MSG_TASK_ADDED = "Task added successfully."
+MSG_TASK_UPDATED = "Task updated successfully."
 
 # Prompts - Add Task feature
 PROMPT_TITLE = "Enter Task Title: "
@@ -25,3 +29,8 @@ PROMPT_DESCRIPTION = "Enter Optional Task Description (press Enter to skip): "
 PROMPT_TASK_ID = "Enter Task ID: "
 PROMPT_PAGINATION = "Press Enter to continue..."
 MSG_NO_TASKS = "No tasks found."
+
+# Prompts - Update Task feature
+PROMPT_FIELD_SELECTION = "Select update option (1-3): "
+PROMPT_NEW_TITLE = "Enter New Task Title: "
+PROMPT_NEW_DESCRIPTION = "Enter New Task Description (press Enter to clear): "

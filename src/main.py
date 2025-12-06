@@ -8,6 +8,7 @@ from src.ui.prompts import (
     get_task_description,
     get_task_title,
     prompt_for_task_id,
+    update_task_prompt,
 )
 
 
@@ -54,7 +55,7 @@ def main() -> None:
         print("1. Add Task")
         print("2. View Tasks")
         print("3. View Task Details")
-        print("4. Update Task")  # Future feature
+        print("4. Update Task")
         print("5. Delete Task")  # Future feature
         print("6. Mark Complete")  # Future feature
         print("7. Exit")
@@ -67,6 +68,8 @@ def main() -> None:
             handle_view_tasks()
         elif choice == "3":
             handle_view_task_details()
+        elif choice == "4":
+            update_task_prompt()
         elif choice == "7":
             print("Goodbye!")
             break

@@ -67,17 +67,17 @@ class TestMainMenu:
     @patch("builtins.print")
     def test_main_menu_future_features(self, mock_print, mock_input):
         """Test future feature options show not implemented message."""
-        # Test options 4, 5, 6 (all future features, since 2 and 3 are now implemented)
-        mock_input.side_effect = ["4", "5", "6", "7"]
+        # Test options 5, 6 (Delete Task and Mark Complete - future features)
+        mock_input.side_effect = ["5", "6", "7"]
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        # Should see "not implemented" message 3 times (for options 4, 5, 6)
+        # Should see "not implemented" message 2 times (for options 5, 6)
         not_implemented_count = sum(
             1 for call in print_calls if "Feature not yet implemented" in call
         )
-        assert not_implemented_count == 3
+        assert not_implemented_count == 2
 
     @patch("builtins.input")
     @patch("builtins.print")
@@ -134,13 +134,16 @@ class TestMainMenu:
 
     @patch("builtins.input")
     @patch("builtins.print")
-    def test_main_menu_loop_continues_after_operation(self, mock_print, mock_input):
+    @patch("src.main.update_task_prompt")
+    def test_main_menu_loop_continues_after_operation(self, mock_update, mock_print, mock_input):
         """Test menu loop continues after each operation."""
-        # Option 2: View Tasks, Option 4: Update Task (not implemented), Exit
+        # Option 2: View Tasks, Option 4: Update Task, Exit
         mock_input.side_effect = ["2", "4", "7"]
 
         main()
 
+        # Update task should be called once
+        mock_update.assert_called_once()
         # Should see menu displayed 3 times (once for each iteration)
         menu_count = sum(1 for call in mock_print.call_args_list if "=== Todo App ===" in str(call))
         assert menu_count == 3

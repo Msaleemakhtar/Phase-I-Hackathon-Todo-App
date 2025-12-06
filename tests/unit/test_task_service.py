@@ -174,3 +174,153 @@ class TestGetAllTasks:
         assert len(tasks) == 2
         assert task1 in tasks
         assert task2 in tasks
+
+
+class TestGetTaskById:
+    """Tests for get_task_by_id() function."""
+
+    def test_get_task_by_id_exists(self):
+        """Returns task with matching ID."""
+        task = task_service.create_task("Test Task", "Description")
+        retrieved = task_service.get_task_by_id(1)
+
+        assert retrieved == task
+        assert retrieved.id == 1
+
+    def test_get_task_by_id_nonexistent(self):
+        """Raises ValueError when task doesn't exist (ERROR 101)."""
+        task_service.create_task("Test", "")
+
+        with pytest.raises(ValueError, match="ERROR 101"):
+            task_service.get_task_by_id(99)
+
+    def test_get_task_by_id_zero(self):
+        """Raises ValueError for task_id = 0 (ERROR 103)."""
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.get_task_by_id(0)
+
+    def test_get_task_by_id_negative(self):
+        """Raises ValueError for negative task_id (ERROR 103)."""
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.get_task_by_id(-1)
+
+
+class TestUpdateTask:
+    """Tests for update_task() function."""
+
+    def test_update_task_title_only(self):
+        """Test updating only the title field."""
+        task = task_service.create_task("Original Title", "Original Description")
+        original_description = task.description
+        original_id = task.id
+        original_created_at = task.created_at
+
+        updated = task_service.update_task(1, new_title="Updated Title")
+
+        assert updated.title == "Updated Title"
+        assert updated.description == original_description
+        assert updated.id == original_id
+        assert updated.created_at == original_created_at
+
+    def test_update_task_description_only(self):
+        """Test updating only the description field."""
+        task = task_service.create_task("Original Title", "Original Description")
+        original_title = task.title
+        original_id = task.id
+        original_created_at = task.created_at
+
+        updated = task_service.update_task(1, new_description="Updated Description")
+
+        assert updated.title == original_title
+        assert updated.description == "Updated Description"
+        assert updated.id == original_id
+        assert updated.created_at == original_created_at
+
+    def test_update_task_both_fields(self):
+        """Test updating both title and description."""
+        task = task_service.create_task("Original Title", "Original Description")
+        original_id = task.id
+        original_created_at = task.created_at
+
+        updated = task_service.update_task(
+            1, new_title="Updated Title", new_description="Updated Description"
+        )
+
+        assert updated.title == "Updated Title"
+        assert updated.description == "Updated Description"
+        assert updated.id == original_id
+        assert updated.created_at == original_created_at
+
+    def test_update_task_updates_timestamp(self):
+        """Test that updated_at timestamp changes on update."""
+        import time
+
+        task = task_service.create_task("Test", "Description")
+        original_updated_at = task.updated_at
+
+        # Small delay to ensure timestamp difference
+        time.sleep(0.01)
+
+        updated = task_service.update_task(1, new_title="Updated")
+
+        assert updated.updated_at != original_updated_at
+
+    def test_update_task_preserves_immutable_fields(self):
+        """Test that id, completed, created_at are not modified."""
+        task = task_service.create_task("Test", "Description")
+        original_id = task.id
+        original_completed = task.completed
+        original_created_at = task.created_at
+
+        task_service.update_task(1, new_title="Updated", new_description="Updated Desc")
+
+        assert task.id == original_id
+        assert task.completed == original_completed
+        assert task.created_at == original_created_at
+
+    def test_update_task_invalid_id_zero(self):
+        """Test updating with task_id = 0 raises ERROR 103."""
+        task_service.create_task("Test", "")
+
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.update_task(0, new_title="Updated")
+
+    def test_update_task_invalid_id_negative(self):
+        """Test updating with task_id = -1 raises ERROR 103."""
+        task_service.create_task("Test", "")
+
+        with pytest.raises(ValueError, match="ERROR 103"):
+            task_service.update_task(-1, new_title="Updated")
+
+    def test_update_task_nonexistent_id(self):
+        """Test updating non-existent task raises ERROR 101."""
+        task_service.create_task("Test", "")
+
+        with pytest.raises(ValueError, match="ERROR 101"):
+            task_service.update_task(99, new_title="Updated")
+
+    def test_update_task_returns_same_instance(self):
+        """Test that update returns the same Task object (in-place modification)."""
+        task = task_service.create_task("Test", "Description")
+        updated = task_service.update_task(1, new_title="Updated")
+
+        assert updated is task
+
+    def test_update_task_with_none_values(self):
+        """Test calling update_task with both new_title=None, new_description=None."""
+        task = task_service.create_task("Original", "Description")
+        original_title = task.title
+        original_description = task.description
+        original_updated_at = task.updated_at
+
+        import time
+
+        time.sleep(0.01)
+
+        updated = task_service.update_task(1)
+
+        # Fields should be unchanged
+        assert updated.title == original_title
+        assert updated.description == original_description
+        # But timestamp should update
+        assert updated.updated_at != original_updated_at
