@@ -17,9 +17,14 @@ ERROR_INVALID_TASK_ID = "ERROR 103: Task ID must be a positive number."
 # Error codes and messages - Update Task feature
 ERROR_INVALID_OPTION = "ERROR 104: Invalid option. Please select 1, 2, or 3."
 
+# Error codes and messages - Delete Task feature
+ERROR_INVALID_CONFIRMATION = "ERROR 105: Invalid input. Please enter Y or N."
+
 # Success messages
 MSG_TASK_ADDED = "Task added successfully."
 MSG_TASK_UPDATED = "Task updated successfully."
+MSG_TASK_DELETED = "Task deleted successfully."
+MSG_DELETION_CANCELED = "Deletion canceled."
 
 # Prompts - Add Task feature
 PROMPT_TITLE = "Enter Task Title: "

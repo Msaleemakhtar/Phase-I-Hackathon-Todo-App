@@ -2,6 +2,7 @@
 
 from src.constants import (
     ERROR_DESCRIPTION_TOO_LONG,
+    ERROR_INVALID_CONFIRMATION,
     ERROR_INVALID_INPUT,
     ERROR_INVALID_OPTION,
     ERROR_INVALID_TASK_ID,
@@ -9,7 +10,9 @@ from src.constants import (
     ERROR_TITLE_TOO_LONG,
     MAX_DESCRIPTION_LENGTH,
     MAX_TITLE_LENGTH,
+    MSG_DELETION_CANCELED,
     MSG_NO_TASKS,
+    MSG_TASK_DELETED,
     MSG_TASK_UPDATED,
     PROMPT_DESCRIPTION,
     PROMPT_FIELD_SELECTION,
@@ -20,7 +23,7 @@ from src.constants import (
     PROMPT_TITLE,
 )
 from src.models.task import Task
-from src.services.task_service import get_task_by_id, update_task
+from src.services.task_service import delete_task, get_task_by_id, update_task
 
 
 def validate_title(title: str) -> tuple[bool, str | None]:
@@ -262,3 +265,57 @@ def update_task_prompt() -> None:
 
     # Step 7: Display success message
     print(MSG_TASK_UPDATED)
+
+
+def prompt_for_delete_confirmation(task_title: str) -> bool:
+    """Prompt user to confirm task deletion with Y/N response.
+
+    Args:
+        task_title: Title of the task to be deleted (for context)
+
+    Returns:
+        True if user confirms deletion (Y/y), False if user cancels (N/n)
+    """
+    prompt = f"Delete task '{task_title}'? (Y/N): "
+
+    while True:
+        # Get user input and normalize (strip whitespace, uppercase)
+        response = input(prompt).strip().upper()
+
+        # Check for confirmation
+        if response == "Y":
+            return True
+
+        # Check for cancellation
+        if response == "N":
+            return False
+
+        # Invalid response - show error and re-prompt
+        print(ERROR_INVALID_CONFIRMATION)
+
+
+def delete_task_prompt() -> None:
+    """Orchestrate the complete delete task workflow with user interaction."""
+    try:
+        # Step 1: Get and validate task ID
+        task_id = prompt_for_task_id()
+
+        # Step 2: Retrieve task (validates existence)
+        task = get_task_by_id(task_id)
+
+    except ValueError as e:
+        # Handle ID validation errors (ERROR 101, 102, 103)
+        print(str(e))
+        return  # Return to main menu without showing confirmation
+
+    # Step 3: Get user confirmation (shows task title for context)
+    confirmed = prompt_for_delete_confirmation(task.title)
+
+    # Step 4: Execute deletion or cancellation
+    if confirmed:
+        # User confirmed with Y/y
+        delete_task(task_id)
+        print(MSG_TASK_DELETED)
+    else:
+        # User canceled with N/n
+        print(MSG_DELETION_CANCELED)
