@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13 + pytest (testing only), Python standard library (001-add-task)
 - In-memory only (Python list of dataclass instances) (001-add-task)
+- Python 3.13 (per constitution requirement) + pytest for testing only; Python standard library exclusively (002-view-task)
+- In-memory only (Python list of dataclass instances, no persistence) (002-view-task)
 
 ## Recent Changes
 - 001-add-task: Added Python 3.13 + pytest (testing only), Python standard library

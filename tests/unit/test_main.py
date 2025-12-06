@@ -1,8 +1,6 @@
 """Unit tests for main application menu."""
 
-from unittest.mock import call, patch
-
-import pytest
+from unittest.mock import patch
 
 from src.main import handle_add_task, main
 
@@ -37,7 +35,7 @@ class TestMainMenu:
     @patch("src.main.handle_add_task")
     def test_main_menu_option_1_add_task(self, mock_handle, mock_print, mock_input):
         """Test selecting option 1 calls handle_add_task."""
-        mock_input.side_effect = ["1", "6"]  # Select Add Task, then Exit
+        mock_input.side_effect = ["1", "7"]  # Select Add Task, then Exit
 
         main()
 
@@ -46,9 +44,9 @@ class TestMainMenu:
 
     @patch("builtins.input")
     @patch("builtins.print")
-    def test_main_menu_option_6_exit(self, mock_print, mock_input):
-        """Test selecting option 6 exits with goodbye message."""
-        mock_input.return_value = "6"
+    def test_main_menu_option_7_exit(self, mock_print, mock_input):
+        """Test selecting option 7 exits with goodbye message."""
+        mock_input.return_value = "7"
 
         main()
 
@@ -58,36 +56,34 @@ class TestMainMenu:
     @patch("builtins.print")
     def test_main_menu_invalid_option(self, mock_print, mock_input):
         """Test invalid option shows error message."""
-        mock_input.side_effect = ["99", "6"]  # Invalid option, then Exit
+        mock_input.side_effect = ["99", "7"]  # Invalid option, then Exit
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any(
-            "Feature not yet implemented or invalid option." in call for call in print_calls
-        )
+        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_menu_future_features(self, mock_print, mock_input):
         """Test future feature options show not implemented message."""
-        # Test options 2, 3, 4, 5 (all future features)
-        mock_input.side_effect = ["2", "3", "4", "5", "6"]
+        # Test options 4, 5, 6 (all future features, since 2 and 3 are now implemented)
+        mock_input.side_effect = ["4", "5", "6", "7"]
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        # Should see "not implemented" message 4 times (for options 2, 3, 4, 5)
+        # Should see "not implemented" message 3 times (for options 4, 5, 6)
         not_implemented_count = sum(
             1 for call in print_calls if "Feature not yet implemented" in call
         )
-        assert not_implemented_count == 4
+        assert not_implemented_count == 3
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_menu_displays_all_options(self, mock_print, mock_input):
-        """Test main menu displays all 6 options."""
-        mock_input.return_value = "6"
+        """Test main menu displays all 7 options."""
+        mock_input.return_value = "7"
 
         main()
 
@@ -95,10 +91,11 @@ class TestMainMenu:
         assert any("=== Todo App ===" in call for call in print_calls)
         assert any("1. Add Task" in call for call in print_calls)
         assert any("2. View Tasks" in call for call in print_calls)
-        assert any("3. Update Task" in call for call in print_calls)
-        assert any("4. Delete Task" in call for call in print_calls)
-        assert any("5. Mark Complete" in call for call in print_calls)
-        assert any("6. Exit" in call for call in print_calls)
+        assert any("3. View Task Details" in call for call in print_calls)
+        assert any("4. Update Task" in call for call in print_calls)
+        assert any("5. Delete Task" in call for call in print_calls)
+        assert any("6. Mark Complete" in call for call in print_calls)
+        assert any("7. Exit" in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
@@ -106,7 +103,7 @@ class TestMainMenu:
     def test_main_menu_multiple_operations(self, mock_handle, mock_print, mock_input):
         """Test multiple operations in sequence."""
         # Add task twice, try invalid option, then exit
-        mock_input.side_effect = ["1", "1", "invalid", "6"]
+        mock_input.side_effect = ["1", "1", "invalid", "7"]
 
         main()
 
@@ -117,33 +114,30 @@ class TestMainMenu:
     @patch("builtins.print")
     def test_main_menu_empty_input(self, mock_print, mock_input):
         """Test empty input treated as invalid option."""
-        mock_input.side_effect = ["", "6"]
+        mock_input.side_effect = ["", "7"]
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any(
-            "Feature not yet implemented or invalid option." in call for call in print_calls
-        )
+        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_menu_whitespace_input(self, mock_print, mock_input):
         """Test whitespace input treated as invalid option."""
-        mock_input.side_effect = ["   ", "6"]
+        mock_input.side_effect = ["   ", "7"]
 
         main()
 
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any(
-            "Feature not yet implemented or invalid option." in call for call in print_calls
-        )
+        assert any("Feature not yet implemented or invalid option." in call for call in print_calls)
 
     @patch("builtins.input")
     @patch("builtins.print")
     def test_main_menu_loop_continues_after_operation(self, mock_print, mock_input):
         """Test menu loop continues after each operation."""
-        mock_input.side_effect = ["2", "3", "6"]  # View, Update, Exit
+        # Option 2: View Tasks, Option 4: Update Task (not implemented), Exit
+        mock_input.side_effect = ["2", "4", "7"]
 
         main()
 
